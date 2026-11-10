@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head(${cliente.id == null ? 'Nuevo Cliente' : 'Editar Cliente'})}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('clientes')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar(${cliente.id == null ? 'Registrar Nuevo Cliente' : 'Editar Cliente'})}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <div class="card-custom p-4" style="max-width: 750px; margin: 0 auto;">
+        <form th:action="@{/clientes/guardar}" th:object="${cliente}" method="post">
+            <input type="hidden" th:field="*{id}" />
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Documento de Identidad / NIT *</label>
+                    <input type="text" th:field="*{documento}" class="form-control" placeholder="C.C. o NIT" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Tipo de Cliente *</label>
+                    <select th:field="*{tipoCliente}" class="form-select" required>
+                        <option th:each="t : ${tipos}" th:value="${t}" th:text="${t.descripcion}"></option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-muted">Nombre Completo o Razón Social *</label>
+                    <input type="text" th:field="*{nombreCompleto}" class="form-control" placeholder="Ej: Eventos & Banquetes Élite S.A.S." required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Teléfono de Contacto</label>
+                    <input type="tel" th:field="*{telefono}" class="form-control" placeholder="Ej: 315 123 4567" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Correo Electrónico (Para envío de Facturas)</label>
+                    <input type="email" th:field="*{email}" class="form-control" placeholder="cliente@ejemplo.com" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-muted">Dirección de Entrega / Domicilio</label>
+                    <input type="text" th:field="*{direccion}" class="form-control" placeholder="Ej: Cra 15 #85-30, Apto 402" />
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                <a th:href="@{/clientes}" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-gourmet">
+                    <i class="bi bi-save me-1"></i> Guardar Cliente
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

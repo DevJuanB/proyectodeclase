@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Ventas & Pedidos')}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('pedidos')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Gestión de Pedidos & Facturación')}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <div class="card-custom p-3 mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <form th:action="@{/pedidos}" method="get">
+                    <select name="estado" onchange="this.form.submit()" class="form-select">
+                        <option value="">-- Todos los Estados --</option>
+                        <option th:each="est : ${estados}" th:value="${est}" th:text="${est.descripcion}" th:selected="${estadoSeleccionado == est}"></option>
+                    </select>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <form th:action="@{/pedidos}" method="get">
+                    <select name="tipoVenta" onchange="this.form.submit()" class="form-select">
+                        <option value="">-- Minoristas & Mayoristas --</option>
+                        <option th:each="tv : ${tiposVenta}" th:value="${tv}" th:text="${tv.descripcion}" th:selected="${tipoSeleccionado == tv}"></option>
+                    </select>
+                </form>
+            </div>
+            <div class="col-md-6 text-end">
+                <a th:href="@{/pedidos/nuevo}" class="btn btn-gourmet">
+                    <i class="bi bi-cart-plus-fill me-1"></i> Registrar Nueva Venta / Pedido
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Pedidos -->
+    <div class="card-custom p-4">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover">
+                <thead>
+                    <tr>
+                        <th>N° Factura</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Tipo Venta</th>
+                        <th>Modalidad</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                        <th>Saldo</th>
+                        <th class="text-end">Comprobante & Envío</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="ped : ${pedidos}">
+                        <td class="fw-bold text-primary" th:text="${ped.numeroFactura}">FAC</td>
+                        <td class="small" th:text="${#temporals.format(ped.fechaPedido, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                        <td>
+                            <div class="fw-bold" th:text="${ped.cliente.nombreCompleto}">Cliente</div>
+                            <small class="text-muted" th:text="${ped.cliente.email}">correo</small>
+                        </td>
+                        <td>
+                            <span class="badge" th:classappend="${ped.tipoVenta.name() == 'MAYORISTA' ? 'bg-primary' : 'bg-light text-dark border'}" th:text="${ped.tipoVenta.descripcion}"></span>
+                        </td>
+                        <td class="small text-muted" th:text="${ped.tipoEntrega.descripcion}">Modalidad</td>
+                        <td>
+                            <span class="badge badge-status"
+                                  th:classappend="${ped.estado.name() == 'ENTREGADO' ? 'bg-success' : (ped.estado.name() == 'PENDIENTE' ? 'bg-warning text-dark' : (ped.estado.name() == 'EN_PREPARACION' ? 'bg-info text-dark' : 'bg-danger'))}"
+                                  th:text="${ped.estado.descripcion}">Estado</span>
+                        </td>
+                        <td class="fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(ped.total, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                        <td>
+                            <span class="fw-bold" th:classappend="${ped.saldoPendiente > 0 ? 'text-danger' : 'text-muted'}"
+                                  th:text="'$' + ${#numbers.formatDecimal(ped.saldoPendiente, 0, 'POINT', 0, 'COMMA')}">$0</span>
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="@{'/pedidos/detalle/' + ${ped.id}}" class="btn btn-outline-secondary" title="Ver Factura en Pantalla">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:href="@{'/pedidos/pdf/' + ${ped.id}}" class="btn btn-pdf" title="Descargar Factura PDF">
+                                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                                </a>
+                                <a th:href="@{'/pedidos/enviar-correo/' + ${ped.id}}" class="btn btn-email" title="Enviar Factura PDF al Correo del Cliente">
+                                    <i class="bi bi-envelope-at"></i> Enviar
+                                </a>
+                                <a th:href="@{'/pedidos/eliminar/' + ${ped.id}}" onclick="return confirm('¿Seguro que deseas eliminar este pedido?');" class="btn btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pedidos)}">
+                        <td colspan="9" class="text-center text-muted py-5">
+                            <i class="bi bi-cart-x fs-2 d-block mb-2"></i>
+                            No se encontraron pedidos con los filtros seleccionados.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

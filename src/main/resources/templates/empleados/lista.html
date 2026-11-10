@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Gestión de Empleados')}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('empleados')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Gestión de Empleados & Personal')}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <div class="card-custom p-3 mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-5">
+                <form th:action="@{/empleados}" method="get" class="d-flex gap-2">
+                    <input type="text" name="buscar" th:value="${buscar}" class="form-control" placeholder="Buscar por identificación o nombre..." />
+                    <button type="submit" class="btn btn-gourmet"><i class="bi bi-search"></i></button>
+                    <a th:if="${buscar != null or cargoSeleccionado != null}" th:href="@{/empleados}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <form th:action="@{/empleados}" method="get">
+                    <select name="cargo" onchange="this.form.submit()" class="form-select">
+                        <option value="">-- Todos los Cargos --</option>
+                        <option th:each="c : ${cargos}" th:value="${c}" th:text="${c.descripcion}" th:selected="${cargoSeleccionado == c}"></option>
+                    </select>
+                </form>
+            </div>
+            <div class="col-md-4 text-end">
+                <a th:href="@{/empleados/nuevo}" class="btn btn-gourmet">
+                    <i class="bi bi-person-plus-fill me-1"></i> Registrar Empleado
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-custom p-4">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover">
+                <thead>
+                    <tr>
+                        <th>Identificación</th>
+                        <th>Nombre Completo</th>
+                        <th>Cargo / Rol</th>
+                        <th>Turno</th>
+                        <th>Contacto</th>
+                        <th>Funciones Asignadas</th>
+                        <th class="text-end">Acciones / Consultas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="e : ${empleados}">
+                        <td class="fw-bold text-muted" th:text="${e.identificacion}">ID</td>
+                        <td class="fw-bold" style="color: var(--primary);" th:text="${e.nombreCompleto}">Nombre</td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${e.cargo.name() == 'PASTELERO' ? 'bg-danger' : (e.cargo.name() == 'PANADERO' ? 'bg-warning text-dark' : (e.cargo.name() == 'VENDEDOR' ? 'bg-info text-dark' : 'bg-dark'))}"
+                                  th:text="${e.cargo.descripcion}">Cargo</span>
+                        </td>
+                        <td class="small" th:text="${e.turno.descripcion}">Turno</td>
+                        <td class="small">
+                            <div><i class="bi bi-telephone text-muted"></i> <span th:text="${e.telefono}"></span></div>
+                            <div class="text-muted"><i class="bi bi-envelope"></i> <span th:text="${e.email}"></span></div>
+                        </td>
+                        <td class="small text-muted" th:text="${e.funciones}">Funciones</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a th:if="${e.cargo.name() == 'VENDEDOR'}" th:href="@{'/empleados/ventas/' + ${e.id}}" class="btn btn-outline-success" title="Consultar Ventas del Vendedor">
+                                    <i class="bi bi-cash-stack"></i> Ventas
+                                </a>
+                                <a th:if="${e.cargo.name() == 'PASTELERO' or e.cargo.name() == 'PANADERO'}" th:href="@{'/empleados/produccion/' + ${e.id}}" class="btn btn-outline-warning text-dark" title="Producciones Asignadas">
+                                    <i class="bi bi-fire"></i> Producción
+                                </a>
+                                <a th:href="@{'/empleados/editar/' + ${e.id}}" class="btn btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a th:href="@{'/empleados/eliminar/' + ${e.id}}" onclick="return confirm('¿Seguro que deseas eliminar este empleado?');" class="btn btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

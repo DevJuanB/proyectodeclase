@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Envío de Correo Manual')}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('correo')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Módulo de Envío de Correos')}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <div class="card-custom p-4" style="max-width: 750px; margin: 0 auto;">
+        <div class="text-center mb-4">
+            <div class="fs-1">✉️</div>
+            <h3 class="brand-font" style="color: var(--primary);">Enviar Correo Electrónico</h3>
+            <p class="text-muted small">Envío directo de notificaciones con plantilla HTML y archivos adjuntos</p>
+        </div>
+
+        <div th:if="${resultado}" class="alert alert-info py-2" role="alert" th:text="${resultado}"></div>
+
+        <form th:action="@{/send}" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">Correo Destinatario *</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input type="email" name="destino" class="form-control" placeholder="destinatario@ejemplo.com" required />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">Asunto del Mensaje *</label>
+                <input type="text" name="asunto" class="form-control" placeholder="Ej: Confirmación de Pedido Especial" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">Nombre del Destinatario (Opcional, usado en la plantilla)</label>
+                <input type="text" name="nombreUsuario" class="form-control" placeholder="Ej: Sra. Valentina Herrera" />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-muted">Adjuntar Archivo (PDF, imagen, catálogo u orden)</label>
+                <input type="file" name="archivo" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-gourmet w-100 py-2">
+                <i class="bi bi-send-fill me-1"></i> Enviar Correo Ahora
+            </button>
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>

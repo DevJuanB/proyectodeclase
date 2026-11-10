@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Factura #' + ${pedido.numeroFactura})}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('pedidos')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Comprobante Oficial de Venta')}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <!-- Barra de Acciones Principales -->
+    <div class="card-custom p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <a th:href="@{/pedidos}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Volver a Pedidos</a>
+
+        <div class="d-flex gap-2">
+            <!-- Botón DESCARGAR PDF -->
+            <a th:href="@{'/pedidos/pdf/' + ${pedido.id}}" class="btn btn-pdf btn-sm">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Descargar Factura PDF
+            </a>
+
+            <!-- Botón ENVIAR POR CORREO -->
+            <a th:href="@{'/pedidos/enviar-correo/' + ${pedido.id}}" class="btn btn-email btn-sm">
+                <i class="bi bi-envelope-at-fill me-1"></i> Enviar Factura al Correo
+            </a>
+
+            <!-- Botón Registrar Abono -->
+            <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalAbono">
+                <i class="bi bi-cash me-1"></i> Registrar Abono
+            </button>
+
+            <!-- Botón Cambiar Estado -->
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEstado">
+                <i class="bi bi-arrow-repeat me-1"></i> Cambiar Estado
+            </button>
+        </div>
+    </div>
+
+    <!-- Factura Estilo Impreso -->
+    <div class="card-custom p-5 bg-white shadow-sm" style="max-width: 900px; margin: 0 auto;">
+        <!-- Cabecera Factura -->
+        <div class="row align-items-center mb-4 pb-4 border-bottom">
+            <div class="col-sm-7">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="fs-1">🍰</span>
+                    <div>
+                        <h2 class="brand-font mb-0" style="color: var(--primary);">Yuju Repostería</h2>
+                        <small class="text-uppercase fw-bold" style="color: var(--secondary); letter-spacing: 1.5px;">Repostería Artesanal & Gourmet</small>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0 mt-2">
+                    NIT: 901.234.567-8 | Tel: +57 (601) 555-0199<br>
+                    Calle 10 #24-15, Bogotá - Colombia<br>
+                    yuju.sas.empresa@gmail.com | www.yujureposteria.com
+                </p>
+            </div>
+            <div class="col-sm-5 text-sm-end mt-3 mt-sm-0">
+                <div class="p-3 rounded" style="background: var(--bg-cream); border: 2px solid var(--primary);">
+                    <small class="text-muted text-uppercase fw-bold d-block">Comprobante de Venta</small>
+                    <h3 class="fw-bold mb-1 text-danger" th:text="${pedido.numeroFactura}">FAC-00000</h3>
+                    <div class="small">Fecha: <strong th:text="${#temporals.format(pedido.fechaPedido, 'dd/MM/yyyy HH:mm')}"></strong></div>
+                    <div class="mt-2">
+                        <span class="badge badge-status"
+                              th:classappend="${pedido.estado.name() == 'ENTREGADO' ? 'bg-success' : (pedido.estado.name() == 'PENDIENTE' ? 'bg-warning text-dark' : 'bg-info text-dark')}"
+                              th:text="${pedido.estado.descripcion}">Estado</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Cliente y Entrega -->
+        <div class="row g-4 mb-4 pb-3 border-bottom">
+            <div class="col-md-6">
+                <h6 class="text-uppercase fw-bold text-muted small mb-2">Facturado a:</h6>
+                <h5 class="fw-bold mb-1" style="color: var(--primary);" th:text="${pedido.cliente.nombreCompleto}">Nombre Cliente</h5>
+                <p class="text-muted small mb-0">
+                    <strong>Doc/NIT:</strong> <span th:text="${pedido.cliente.documento}"></span><br>
+                    <strong>Teléfono:</strong> <span th:text="${pedido.cliente.telefono != null ? pedido.cliente.telefono : 'N/A'}"></span><br>
+                    <strong>Correo:</strong> <span th:text="${pedido.cliente.email != null ? pedido.cliente.email : 'N/A'}"></span><br>
+                    <strong>Dirección:</strong> <span th:text="${pedido.cliente.direccion != null ? pedido.cliente.direccion : 'N/A'}"></span>
+                </p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-uppercase fw-bold text-muted small mb-2">Detalles del Despacho:</h6>
+                <p class="small mb-0">
+                    <strong>Tipo de Venta:</strong> <span class="badge bg-light text-dark border" th:text="${pedido.tipoVenta.descripcion}"></span><br>
+                    <strong>Modalidad:</strong> <span th:text="${pedido.tipoEntrega.descripcion}"></span><br>
+                    <strong>Fecha Entrega:</strong> <span th:text="${pedido.fechaEntrega != null ? #temporals.format(pedido.fechaEntrega, 'dd/MM/yyyy') : 'Entrega Inmediata'}"></span><br>
+                    <strong>Atendido por:</strong> <span th:text="${pedido.vendedor != null ? pedido.vendedor.nombreCompleto : 'Vendedor de Salón'}"></span><br>
+                    <strong>Método de Pago:</strong> <span th:text="${pedido.metodoPago.descripcion}"></span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Tabla de Productos Comprados -->
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle">
+                <thead style="background: var(--primary); color: white;">
+                    <tr>
+                        <th style="width: 15%;">Código</th>
+                        <th style="width: 45%;">Descripción del Producto</th>
+                        <th class="text-center" style="width: 10%;">Cant.</th>
+                        <th class="text-end" style="width: 15%;">P. Unitario</th>
+                        <th class="text-end" style="width: 15%;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="det : ${pedido.detalles}">
+                        <td class="text-muted small fw-bold" th:text="${det.producto.codigo}">COD</td>
+                        <td>
+                            <strong th:text="${det.producto.nombre}">Producto</strong>
+                            <small class="text-muted d-block" th:text="${det.producto.presentacion} + ' | ' + ${det.producto.tamano}"></small>
+                        </td>
+                        <td class="text-center fw-bold" th:text="${det.cantidad}">1</td>
+                        <td class="text-end text-muted" th:text="'$' + ${#numbers.formatDecimal(det.precioUnitario, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                        <td class="text-end fw-bold" th:text="'$' + ${#numbers.formatDecimal(det.subtotal, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totales y Observaciones -->
+        <div class="row align-items-start g-3">
+            <div class="col-md-7">
+                <div class="p-3 rounded bg-light">
+                    <h6 class="small fw-bold text-muted text-uppercase mb-1">Observaciones:</h6>
+                    <p class="small text-muted mb-0" th:text="${pedido.observaciones != null && !pedido.observaciones.isEmpty() ? pedido.observaciones : 'Ninguna.'}"></p>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="p-3 rounded" style="background: var(--bg-cream); border: 1px solid #e5dfd9;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">TOTAL VENTA:</span>
+                        <h4 class="fw-bold text-success mb-0" th:text="'$' + ${#numbers.formatDecimal(pedido.total, 0, 'POINT', 0, 'COMMA')}">$0</h4>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Abono Realizado:</span>
+                        <span class="fw-bold text-primary" th:text="'$' + ${#numbers.formatDecimal(pedido.abono, 0, 'POINT', 0, 'COMMA')}">$0</span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-2 border-top">
+                        <strong class="text-danger">SALDO PENDIENTE:</strong>
+                        <strong class="text-danger fs-5" th:text="'$' + ${#numbers.formatDecimal(pedido.saldoPendiente, 0, 'POINT', 0, 'COMMA')}">$0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5 pt-4 border-top">
+            <p class="small text-muted mb-0">¡Gracias por preferir Yuju Repostería! Hecho a mano con amor e ingredientes de la más alta calidad.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cambiar Estado -->
+<div class="modal fade" id="modalEstado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{'/pedidos/estado/' + ${pedido.id}}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Actualizar Estado del Pedido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label small fw-bold">Seleccionar Nuevo Estado</label>
+                    <select name="nuevoEstado" class="form-select">
+                        <option th:each="st : ${estados}" th:value="${st}" th:text="${st.descripcion}" th:selected="${pedido.estado == st}"></option>
+                    </select>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-info-circle me-1"></i> Si seleccionas <strong>Entregado / Pagado</strong>, el stock de productos terminados se descontará automáticamente.
+                    </small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Actualizar Estado</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Registrar Abono -->
+<div class="modal fade" id="modalAbono" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{'/pedidos/abono/' + ${pedido.id}}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Registrar Abono / Pago Parcial</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-2">Saldo pendiente actual: <strong class="text-danger" th:text="'$' + ${#numbers.formatDecimal(pedido.saldoPendiente, 0, 'POINT', 0, 'COMMA')}"></strong></p>
+                    <label class="form-label small fw-bold">Monto del Abono ($) *</label>
+                    <input type="number" step="0.01" name="monto" class="form-control" th:max="${pedido.saldoPendiente}" required />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success btn-sm">Guardar Abono</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

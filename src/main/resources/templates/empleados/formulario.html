@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head(${empleado.id == null ? 'Nuevo Empleado' : 'Editar Empleado'})}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('empleados')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar(${empleado.id == null ? 'Registrar Nuevo Empleado' : 'Editar Empleado'})}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <div class="card-custom p-4" style="max-width: 800px; margin: 0 auto;">
+        <form th:action="@{/empleados/guardar}" th:object="${empleado}" method="post">
+            <input type="hidden" th:field="*{id}" />
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Cédula / Documento de Identidad *</label>
+                    <input type="text" th:field="*{identificacion}" class="form-control" placeholder="1029384756" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Nombre Completo *</label>
+                    <input type="text" th:field="*{nombreCompleto}" class="form-control" placeholder="Ej: Marcel Dubois" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Cargo / Rol en la Empresa *</label>
+                    <select th:field="*{cargo}" class="form-select" required>
+                        <option th:each="c : ${cargos}" th:value="${c}" th:text="${c.descripcion}"></option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Turno de Trabajo *</label>
+                    <select th:field="*{turno}" class="form-select" required>
+                        <option th:each="t : ${turnos}" th:value="${t}" th:text="${t.descripcion}"></option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Teléfono Móvil</label>
+                    <input type="tel" th:field="*{telefono}" class="form-control" placeholder="315 987 6543" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Correo Corporativo</label>
+                    <input type="email" th:field="*{email}" class="form-control" placeholder="empleado@yujureposteria.com" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-muted">Funciones y Responsabilidades Asignadas</label>
+                    <textarea th:field="*{funciones}" rows="3" class="form-control" placeholder="Detalle de tareas operativas diarias, recetas a cargo o zonas de venta..."></textarea>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                <a th:href="@{/empleados}" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-gourmet">
+                    <i class="bi bi-save me-1"></i> Guardar Empleado
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

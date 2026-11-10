@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head(${materiaPrima.id == null ? 'Nuevo Insumo' : 'Editar Insumo'})}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('inventario')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar(${materiaPrima.id == null ? 'Registrar Insumo en Inventario' : 'Editar Insumo'})}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <div class="card-custom p-4" style="max-width: 750px; margin: 0 auto;">
+        <form th:action="@{/inventario/guardar}" th:object="${materiaPrima}" method="post">
+            <input type="hidden" th:field="*{id}" />
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Código Insumo</label>
+                    <input type="text" th:field="*{codigo}" class="form-control" placeholder="Ej: MP-007" />
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label small fw-bold text-muted">Nombre del Insumo / Materia Prima *</label>
+                    <input type="text" th:field="*{nombre}" class="form-control" placeholder="Ej: Esencia de Vainilla Madagascar" required />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Unidad de Medida *</label>
+                    <input type="text" th:field="*{unidadMedida}" class="form-control" placeholder="kg, Litros, Unidades, g" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Stock Actual *</label>
+                    <input type="number" step="0.01" th:field="*{stockActual}" class="form-control" placeholder="0.00" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Stock Mínimo (Alerta) *</label>
+                    <input type="number" step="0.01" th:field="*{stockMinimo}" class="form-control" placeholder="0.00" required />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-muted">Costo Unitario de Compra ($) *</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" th:field="*{costoUnitario}" class="form-control" placeholder="0.00" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                <a th:href="@{/inventario}" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-gourmet">
+                    <i class="bi bi-save me-1"></i> Guardar Insumo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

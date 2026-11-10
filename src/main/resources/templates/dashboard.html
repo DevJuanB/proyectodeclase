@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Panel de Control')}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('dashboard')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Panel de Control & Operaciones')}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <!-- Banner Bienvenida -->
+    <div class="card-custom p-4 mb-4" style="background: linear-gradient(120deg, #4a1525 0%, #2d0b15 100%); color: white;">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <span class="badge bg-warning text-dark fw-bold mb-2">🍰 SISTEMA DE GESTIÓN INTEGRAL</span>
+                <h2 class="brand-font mb-1">Bienvenido, <span th:text="${session.nombreUsuario != null ? session.nombreUsuario : 'Administrador'}">Usuario</span></h2>
+                <p class="text-white-50 mb-0">Control de producción, catálogo gourmet, compras, pedidos minoristas y mayoristas.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/pedidos/nuevo}" class="btn btn-gold btn-sm">
+                    <i class="bi bi-cart-plus-fill me-1"></i> Registrar Venta
+                </a>
+                <a th:href="@{/produccion/nueva}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-fire me-1"></i> Planificar Producción
+                </a>
+                <a th:href="@{/productos/catalogo-pdf}" class="btn btn-danger btn-sm">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i> Catálogo PDF
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas Principales -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card-custom stat-card">
+                <i class="bi bi-cash-coin stat-icon"></i>
+                <p class="stat-label">Ingresos Totales</p>
+                <h3 class="stat-value" th:text="'$' + ${#numbers.formatDecimal(ingresosTotales, 0, 'POINT', 0, 'COMMA')}">$0</h3>
+                <small class="text-muted"><i class="bi bi-graph-up-arrow text-success"></i> Ventas acumuladas</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card-custom stat-card">
+                <i class="bi bi-receipt stat-icon"></i>
+                <p class="stat-label">Total Pedidos</p>
+                <h3 class="stat-value" th:text="${totalPedidos}">0</h3>
+                <small class="text-muted"><span class="fw-bold text-primary" th:text="${pedidosEntregados}">0</span> completados</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card-custom stat-card">
+                <i class="bi bi-hourglass-split stat-icon"></i>
+                <p class="stat-label">Pedidos Pendientes</p>
+                <h3 class="stat-value text-warning" th:text="${pedidosPendientes}">0</h3>
+                <small class="text-muted">En cola de entrega o preparación</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card-custom stat-card">
+                <i class="bi bi-building-check stat-icon"></i>
+                <p class="stat-label">Ventas Mayoristas</p>
+                <h3 class="stat-value" style="color: var(--secondary);" th:text="'$' + ${#numbers.formatDecimal(ventasMayoristas, 0, 'POINT', 0, 'COMMA')}">$0</h3>
+                <small class="text-muted">Eventos & Empresas</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas de Stock Bajo (Materias Primas y Productos) -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6" th:if="${not #lists.isEmpty(productosBajoStock)}">
+            <div class="card-custom p-3 border-danger bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="text-danger fw-bold mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Alerta: Productos con Stock Mínimo
+                    </h6>
+                    <a th:href="@{/produccion/nueva}" class="btn btn-outline-danger btn-sm py-0">Planificar Producción</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr class="small text-muted">
+                                <th>Código</th>
+                                <th>Producto</th>
+                                <th>Stock Actual</th>
+                                <th>Mínimo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${productosBajoStock}">
+                                <td class="fw-bold" th:text="${p.codigo}"></td>
+                                <td th:text="${p.nombre}"></td>
+                                <td><span class="badge bg-danger" th:text="${p.stock}">0</span></td>
+                                <td class="text-muted" th:text="${p.stockMinimo}">5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6" th:if="${not #lists.isEmpty(materiasBajoStock)}">
+            <div class="card-custom p-3 border-warning bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="text-warning fw-bold mb-0" style="color: #b89326 !important;">
+                        <i class="bi bi-shield-exclamation me-1"></i> Alerta: Insumos con Stock Bajo
+                    </h6>
+                    <a th:href="@{/inventario}" class="btn btn-outline-warning btn-sm py-0">Registrar Entrada</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr class="small text-muted">
+                                <th>Código</th>
+                                <th>Insumo</th>
+                                <th>Stock Actual</th>
+                                <th>Mínimo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="m : ${materiasBajoStock}">
+                                <td class="fw-bold" th:text="${m.codigo}"></td>
+                                <td th:text="${m.nombre}"></td>
+                                <td><span class="badge bg-warning text-dark" th:text="${m.stockActual} + ' ' + ${m.unidadMedida}">0</span></td>
+                                <td class="text-muted" th:text="${m.stockMinimo} + ' ' + ${m.unidadMedida}">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pedidos Recientes y Top Productos -->
+    <div class="row g-4">
+        <!-- Tabla Pedidos Recientes -->
+        <div class="col-xl-8">
+            <div class="card-custom p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="brand-font mb-0" style="color: var(--primary);">Ventas y Pedidos Recientes</h5>
+                    <a th:href="@{/pedidos}" class="text-decoration-none small fw-bold" style="color: var(--secondary);">Ver todos <i class="bi bi-arrow-right"></i></a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-custom table-hover">
+                        <thead>
+                            <tr>
+                                <th>Factura</th>
+                                <th>Cliente</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Total</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ped : ${pedidosRecientes}">
+                                <td class="fw-bold text-primary" th:text="${ped.numeroFactura}">FAC-000</td>
+                                <td>
+                                    <div class="fw-semibold" th:text="${ped.cliente.nombreCompleto}">Cliente</div>
+                                    <small class="text-muted" th:text="${ped.cliente.documento}">Doc</small>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${ped.tipoVenta.name() == 'MAYORISTA' ? 'bg-primary' : 'bg-light text-dark'}" th:text="${ped.tipoVenta.descripcion}"></span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-status"
+                                          th:classappend="${ped.estado.name() == 'ENTREGADO' ? 'bg-success' : (ped.estado.name() == 'PENDIENTE' ? 'bg-warning text-dark' : (ped.estado.name() == 'EN_PREPARACION' ? 'bg-info text-dark' : 'bg-danger'))}"
+                                          th:text="${ped.estado.descripcion}">Estado</span>
+                                </td>
+                                <td class="fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(ped.total, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a th:href="@{'/pedidos/detalle/' + ${ped.id}}" class="btn btn-outline-secondary" title="Ver Detalle">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a th:href="@{'/pedidos/pdf/' + ${ped.id}}" class="btn btn-outline-danger" title="Descargar Factura PDF">
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                        </a>
+                                        <a th:href="@{'/pedidos/enviar-correo/' + ${ped.id}}" class="btn btn-outline-primary" title="Enviar Factura por Correo al Cliente">
+                                            <i class="bi bi-envelope-at"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(pedidosRecientes)}">
+                                <td colspan="6" class="text-center text-muted py-4">No hay pedidos registrados aún.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Productos Vendidos -->
+        <div class="col-xl-4">
+            <div class="card-custom p-4">
+                <h5 class="brand-font mb-3" style="color: var(--primary);">Productos Más Vendidos</h5>
+                <ul class="list-group list-group-flush">
+                    <li th:each="item : ${topProductos}" class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                        <div>
+                            <div class="fw-bold" th:text="${item[0]}">Torta Red Velvet</div>
+                            <small class="text-muted"><span th:text="${item[1]}">0</span> unidades despachadas</small>
+                        </div>
+                        <span class="badge bg-light text-primary fw-bold fs-6" th:text="'$' + ${#numbers.formatDecimal(item[2], 0, 'POINT', 0, 'COMMA')}">$0</span>
+                    </li>
+                    <li th:if="${#lists.isEmpty(topProductos)}" class="list-group-item text-center text-muted py-4">
+                        Aún no se han registrado ventas de productos.
+                    </li>
+                </ul>
+
+                <div class="mt-4 p-3 rounded" style="background: var(--accent-pink);">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-file-earmark-pdf-fill fs-2 text-danger"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color: var(--primary);">Descarga de Catálogo</h6>
+                            <p class="small text-muted mb-2">Exporta la lista de precios oficial en PDF</p>
+                            <a th:href="@{/productos/catalogo-pdf}" class="btn btn-sm btn-gourmet">
+                                <i class="bi bi-download"></i> Descargar PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

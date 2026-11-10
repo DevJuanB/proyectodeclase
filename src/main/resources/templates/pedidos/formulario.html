@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Registrar Pedido / Venta')}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('pedidos')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Nueva Facturación / Pedido Gourmet')}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <form th:action="@{/pedidos/guardar}" th:object="${pedido}" method="post">
+        <div class="row g-4">
+            <!-- Columna Izquierda: Datos del Pedido y Cliente -->
+            <div class="col-lg-5">
+                <div class="card-custom p-4 mb-4">
+                    <h5 class="brand-font mb-3" style="color: var(--primary);">Datos del Cliente & Modalidad</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Cliente Destinatario *</label>
+                        <select th:field="*{cliente.id}" id="selectCliente" class="form-select" required onchange="detectarTipoCliente()">
+                            <option value="">-- Seleccionar Cliente Registrado --</option>
+                            <option th:each="c : ${clientes}" th:value="${c.id}"
+                                    th:data-tipo="${c.tipoCliente.name()}"
+                                    th:text="${c.nombreCompleto} + ' (' + ${c.documento} + ') - ' + ${c.tipoCliente.descripcion}"></option>
+                        </select>
+                        <div class="text-end mt-1">
+                            <a th:href="@{/clientes/nuevo}" target="_blank" class="small text-decoration-none">+ Registrar nuevo cliente</a>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Tipo de Venta *</label>
+                            <select th:field="*{tipoVenta}" id="selectTipoVenta" class="form-select" required onchange="actualizarPrecios()">
+                                <option th:each="tv : ${tiposVenta}" th:value="${tv}" th:text="${tv.descripcion}"></option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Modalidad de Venta *</label>
+                            <select th:field="*{tipoEntrega}" class="form-select" required>
+                                <option th:each="te : ${tiposEntrega}" th:value="${te}" th:text="${te.descripcion}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Vendedor Asignado</label>
+                            <select th:field="*{vendedor.id}" class="form-select">
+                                <option value="">-- Vendedor Mostrador --</option>
+                                <option th:each="v : ${vendedores}" th:value="${v.id}" th:text="${v.nombreCompleto}"></option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Fecha de Entrega</label>
+                            <input type="date" th:field="*{fechaEntrega}" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Método de Pago *</label>
+                            <select th:field="*{metodoPago}" class="form-select" required>
+                                <option th:each="mp : ${metodosPago}" th:value="${mp}" th:text="${mp.descripcion}"></option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Abono Inicial ($)</label>
+                            <input type="number" step="0.01" th:field="*{abono}" id="inputAbono" class="form-control" placeholder="0.00" oninput="calcularTotalGeneral()" />
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold text-muted">Observaciones / Dedicatoria</label>
+                        <textarea th:field="*{observaciones}" rows="2" class="form-control" placeholder="Instrucciones de empaque, mensaje para la tarjeta..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Resumen Financiero -->
+                <div class="card-custom p-4" style="background: var(--bg-cream); border: 2px dashed #d4af37;">
+                    <h5 class="brand-font mb-3" style="color: var(--primary);">Resumen de la Factura</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total a Pagar:</span>
+                        <strong class="fs-4 text-success" id="labelTotal">$0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Abono Registrado:</span>
+                        <span class="fw-semibold text-primary" id="labelAbono">$0</span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-2 border-top">
+                        <span class="fw-bold text-muted">Saldo Pendiente:</span>
+                        <strong class="fs-5 text-danger" id="labelSaldo">$0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Selección de Productos -->
+            <div class="col-lg-7">
+                <div class="card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="brand-font mb-0" style="color: var(--primary);">Productos del Pedido</h5>
+                        <button type="button" class="btn btn-sm btn-gold" onclick="agregarFilaProducto()">
+                            <i class="bi bi-plus-circle me-1"></i> Agregar Producto
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle" id="tablaDetalles">
+                            <thead>
+                                <tr class="small text-muted text-uppercase">
+                                    <th style="width: 45%;">Producto</th>
+                                    <th style="width: 20%;">Precio Unitario</th>
+                                    <th style="width: 15%;">Cantidad</th>
+                                    <th style="width: 15%;">Subtotal</th>
+                                    <th style="width: 5%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoDetalles">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="sinProductos" class="text-center py-4 text-muted">
+                        <i class="bi bi-cart3 fs-1 text-muted d-block mb-2"></i>
+                        Haz clic en <strong>Agregar Producto</strong> para armar el pedido.
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                        <a th:href="@{/pedidos}" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-gourmet px-4">
+                            <i class="bi bi-receipt-cutoff me-1"></i> Confirmar & Generar Factura
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Catalogo de productos en JS para auto-completar -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const listaProductos = /*[[${productos}]]*/ [];
+    /*]]>*/
+
+    function detectarTipoCliente() {
+        const select = document.getElementById('selectCliente');
+        const selectedOption = select.options[select.selectedIndex];
+        if (selectedOption && selectedOption.dataset.tipo) {
+            document.getElementById('selectTipoVenta').value = selectedOption.dataset.tipo;
+            actualizarPrecios();
+        }
+    }
+
+    function agregarFilaProducto() {
+        document.getElementById('sinProductos').style.display = 'none';
+        const tbody = document.getElementById('cuerpoDetalles');
+        const index = tbody.rows.length;
+
+        let optionsHtml = '<option value="">-- Seleccionar --</option>';
+        listaProductos.forEach(p => {
+            optionsHtml += `<option value="${p.id}" data-min="${p.precioMinorista}" data-may="${p.precioMayorista}" data-stock="${p.stock}">
+                ${p.nombre} (Stock: ${p.stock})
+            </option>`;
+        });
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <select name="productoIds" class="form-select form-select-sm select-prod" required onchange="cambioProducto(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input type="text" class="form-control input-precio" readonly value="0" />
+                </div>
+            </td>
+            <td>
+                <input type="number" name="cantidades" class="form-control form-control-sm input-cant" value="1" min="1" required oninput="calcularSubtotal(this)" />
+            </td>
+            <td>
+                <strong class="span-subtotal text-success">$0</strong>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="eliminarFila(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function cambioProducto(select) {
+        const tr = select.closest('tr');
+        const opt = select.options[select.selectedIndex];
+        const tipoVenta = document.getElementById('selectTipoVenta').value;
+        const precio = (tipoVenta === 'MAYORISTA') ? opt.dataset.may : opt.dataset.min;
+        
+        tr.querySelector('.input-precio').value = precio || 0;
+        calcularSubtotal(tr.querySelector('.input-cant'));
+    }
+
+    function actualizarPrecios() {
+        const filas = document.querySelectorAll('#cuerpoDetalles tr');
+        filas.forEach(tr => {
+            const select = tr.querySelector('.select-prod');
+            if (select && select.value) {
+                cambioProducto(select);
+            }
+        });
+    }
+
+    function calcularSubtotal(inputCant) {
+        const tr = inputCant.closest('tr');
+        const precio = parseFloat(tr.querySelector('.input-precio').value) || 0;
+        const cant = parseInt(inputCant.value) || 0;
+        const subtotal = precio * cant;
+        tr.querySelector('.span-subtotal').textContent = '$' + subtotal.toLocaleString('es-CO');
+        tr.dataset.subtotal = subtotal;
+
+        calcularTotalGeneral();
+    }
+
+    function eliminarFila(btn) {
+        btn.closest('tr').remove();
+        if (document.querySelectorAll('#cuerpoDetalles tr').length === 0) {
+            document.getElementById('sinProductos').style.display = 'block';
+        }
+        calcularTotalGeneral();
+    }
+
+    function calcularTotalGeneral() {
+        let total = 0;
+        document.querySelectorAll('#cuerpoDetalles tr').forEach(tr => {
+            total += parseFloat(tr.dataset.subtotal) || 0;
+        });
+
+        const abono = parseFloat(document.getElementById('inputAbono').value) || 0;
+        const saldo = Math.max(0, total - abono);
+
+        document.getElementById('labelTotal').textContent = '$' + total.toLocaleString('es-CO');
+        document.getElementById('labelAbono').textContent = '$' + abono.toLocaleString('es-CO');
+        document.getElementById('labelSaldo').textContent = '$' + saldo.toLocaleString('es-CO');
+    }
+
+    // Inicializar con 1 fila
+    window.addEventListener('DOMContentLoaded', () => {
+        agregarFilaProducto();
+    });
+</script>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

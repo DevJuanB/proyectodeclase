@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Planificar Producción')}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('produccion')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Planificación de Lote de Producción')}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <div class="card-custom p-4" style="max-width: 750px; margin: 0 auto;">
+        <form th:action="@{/produccion/guardar}" th:object="${produccion}" method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Código de Lote (Opcional, autogenerable)</label>
+                    <input type="text" th:field="*{codigoLote}" class="form-control" placeholder="Ej: LOTE-2026-004" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Fecha Programada *</label>
+                    <input type="date" th:field="*{fechaPlanificada}" class="form-control" required />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-muted">Producto a Elaborar *</label>
+                    <select th:field="*{producto.id}" class="form-select" required>
+                        <option value="">-- Seleccionar Producto del Catálogo --</option>
+                        <option th:each="p : ${productos}" th:value="${p.id}" th:text="${p.nombre} + ' (' + ${p.tipo.descripcion} + ') - Stock Actual: ' + ${p.stock}"></option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Cantidad a Elaborar (Unidades) *</label>
+                    <input type="number" th:field="*{cantidadPlanificada}" class="form-control" placeholder="Ej: 20" min="1" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Maestro Pastelero / Responsable *</label>
+                    <select th:field="*{responsable.id}" class="form-select" required>
+                        <option value="">-- Seleccionar Encargado --</option>
+                        <option th:each="e : ${pasteleros}" th:value="${e.id}" th:text="${e.nombreCompleto} + ' (' + ${e.cargo.descripcion} + ' - Turno: ' + ${e.turno.descripcion} + ')'"></option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-muted">Observaciones / Instrucciones de Receta</label>
+                    <textarea th:field="*{observaciones}" rows="3" class="form-control" placeholder="Especificaciones de decoración, alérgenos especiales o preparación para evento..."></textarea>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                <a th:href="@{/produccion}" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-gourmet">
+                    <i class="bi bi-save me-1"></i> Programar Orden de Producción
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

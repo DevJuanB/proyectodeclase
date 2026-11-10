@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Kardex de Movimientos')}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('inventario')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Kardex de Movimientos de Inventario')}"></div>
+
+    <div class="card-custom p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="brand-font mb-0" style="color: var(--primary);">Historial de Entradas y Salidas de Materias Primas</h5>
+            <a th:href="@{/inventario}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Volver a Inventario</a>
+        </div>
+    </div>
+
+    <div class="card-custom p-4">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Insumo</th>
+                        <th>Tipo Operación</th>
+                        <th>Cantidad</th>
+                        <th>Motivo / Justificación</th>
+                        <th>Responsable</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="mov : ${movimientos}">
+                        <td class="small" th:text="${#temporals.format(mov.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                        <td class="fw-bold" style="color: var(--primary);" th:text="${mov.materiaPrima.nombre}">Insumo</td>
+                        <td>
+                            <span class="badge" th:classappend="${mov.tipo.name() == 'ENTRADA' ? 'bg-success' : 'bg-danger'}"
+                                  th:text="${mov.tipo.descripcion}"></span>
+                        </td>
+                        <td class="fw-bold" th:classappend="${mov.tipo.name() == 'ENTRADA' ? 'text-success' : 'text-danger'}"
+                            th:text="(${mov.tipo.name() == 'ENTRADA' ? '+' : '-'}) + ${#numbers.formatDecimal(mov.cantidad, 0, 'POINT', 2, 'COMMA')} + ' ' + ${mov.materiaPrima.unidadMedida}">0</td>
+                        <td class="small" th:text="${mov.motivo}">Motivo</td>
+                        <td class="small text-muted" th:text="${mov.responsable}">Responsable</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(movimientos)}">
+                        <td colspan="6" class="text-center text-muted py-5">No hay movimientos registrados recientemente.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

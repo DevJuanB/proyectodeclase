@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Historial de Compras - ' + ${cliente.nombreCompleto})}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('clientes')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Historial Comercial del Cliente')}"></div>
+
+    <!-- Tarjeta del Cliente -->
+    <div class="card-custom p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <span class="badge" th:classappend="${cliente.tipoCliente.name() == 'MAYORISTA' ? 'bg-primary' : 'bg-secondary'}" th:text="${cliente.tipoCliente.descripcion}"></span>
+                <h3 class="brand-font mb-1" style="color: var(--primary);" th:text="${cliente.nombreCompleto}">Nombre</h3>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-card-text me-1"></i> Doc: <strong th:text="${cliente.documento}"></strong> | 
+                    <i class="bi bi-telephone me-1"></i> Tel: <span th:text="${cliente.telefono != null ? cliente.telefono : 'N/A'}"></span> | 
+                    <i class="bi bi-envelope me-1"></i> Correo: <span th:text="${cliente.email != null ? cliente.email : 'N/A'}"></span> |
+                    <i class="bi bi-geo-alt me-1"></i> Dirección: <span th:text="${cliente.direccion != null ? cliente.direccion : 'N/A'}"></span>
+                </p>
+            </div>
+            <div>
+                <a th:href="@{/clientes}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Volver a Clientes</a>
+                <a th:href="@{/pedidos/nuevo}" class="btn btn-gourmet btn-sm"><i class="bi bi-cart-plus"></i> Nueva Venta</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla del Historial de Compras -->
+    <div class="card-custom p-4">
+        <h5 class="brand-font mb-3" style="color: var(--primary);">Historial de Facturas y Pedidos</h5>
+
+        <div class="table-responsive">
+            <table class="table table-custom table-hover">
+                <thead>
+                    <tr>
+                        <th>N° Factura</th>
+                        <th>Fecha Pedido</th>
+                        <th>Fecha Entrega</th>
+                        <th>Modalidad</th>
+                        <th>Estado</th>
+                        <th>Total Factura</th>
+                        <th>Abonado</th>
+                        <th>Saldo Pendiente</th>
+                        <th class="text-end">Comprobante</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${historial}">
+                        <td class="fw-bold text-primary" th:text="${p.numeroFactura}">FAC</td>
+                        <td th:text="${#temporals.format(p.fechaPedido, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                        <td th:text="${p.fechaEntrega != null ? #temporals.format(p.fechaEntrega, 'dd/MM/yyyy') : 'Inmediata'}">Fecha</td>
+                        <td th:text="${p.tipoEntrega.descripcion}">Modalidad</td>
+                        <td>
+                            <span class="badge badge-status"
+                                  th:classappend="${p.estado.name() == 'ENTREGADO' ? 'bg-success' : (p.estado.name() == 'PENDIENTE' ? 'bg-warning text-dark' : 'bg-info text-dark')}"
+                                  th:text="${p.estado.descripcion}">Estado</span>
+                        </td>
+                        <td class="fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(p.total, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                        <td th:text="'$' + ${#numbers.formatDecimal(p.abono, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                        <td class="fw-bold" th:classappend="${p.saldoPendiente > 0 ? 'text-danger' : 'text-muted'}"
+                            th:text="'$' + ${#numbers.formatDecimal(p.saldoPendiente, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="@{'/pedidos/detalle/' + ${p.id}}" class="btn btn-outline-secondary" title="Ver Detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:href="@{'/pedidos/pdf/' + ${p.id}}" class="btn btn-outline-danger" title="Descargar Factura PDF">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                                <a th:href="@{'/pedidos/enviar-correo/' + ${p.id}}" class="btn btn-outline-primary" title="Enviar Factura por Correo">
+                                    <i class="bi bi-envelope-at"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(historial)}">
+                        <td colspan="9" class="text-center text-muted py-5">
+                            Este cliente aún no ha registrado compras en el sistema.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

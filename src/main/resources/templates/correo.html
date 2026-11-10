@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Yuju Repostería</title>
+</head>
+<body style="font-family: 'Segoe UI', Arial, sans-serif; color: #334155; background-color: #fdfbf9; margin: 0; padding: 25px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 620px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.06); border: 1px solid #eee8e2;">
+        <!-- Cabecera -->
+        <tr style="background: linear-gradient(135deg, #4a1525 0%, #2d0b15 100%); background-color: #4a1525;">
+            <td style="padding: 28px 36px; text-align: center;">
+                <div style="font-size: 38px; margin-bottom: 6px;">🍰</div>
+                <h1 style="margin: 0; color: #ffffff; font-size: 1.6rem; font-weight: 700; font-family: Georgia, serif;">Yuju Repostería</h1>
+                <p style="margin: 4px 0 0 0; color: #d4af37; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Repostería Artesanal & Gourmet</p>
+            </td>
+        </tr>
+
+        <!-- Contenido principal -->
+        <tr>
+            <td style="padding: 36px; line-height: 1.6; font-size: 1rem;">
+                <p th:text="'Hola ' + ${nombre} + ','" style="margin-bottom: 16px; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Hola Estimado/a Cliente,</p>
+
+                <div th:utext="${mensaje}" style="margin-bottom: 24px; color: #475569; font-size: 0.95rem;">
+                    Gracias por tu compra en Yuju Repostería.
+                </div>
+
+                <!-- Resumen si es Factura -->
+                <table th:if="${numeroFactura}" width="100%" cellpadding="8" cellspacing="0" style="background: #faf6f2; border-radius: 8px; border: 1px solid #ebd8c8; margin-bottom: 24px;">
+                    <tr>
+                        <td style="font-size: 0.9rem; color: #64748b;">N° Factura:</td>
+                        <td style="font-size: 0.95rem; font-weight: bold; color: #4a1525;" th:text="${numeroFactura}">FAC-00000</td>
+                    </tr>
+                    <tr th:if="${total}">
+                        <td style="font-size: 0.9rem; color: #64748b;">Total Facturado:</td>
+                        <td style="font-size: 0.95rem; font-weight: bold; color: #198754;" th:text="'$' + ${total}">$0</td>
+                    </tr>
+                    <tr th:if="${saldo}">
+                        <td style="font-size: 0.9rem; color: #64748b;">Saldo Pendiente:</td>
+                        <td style="font-size: 0.95rem; font-weight: bold; color: #dc3545;" th:text="'$' + ${saldo}">$0</td>
+                    </tr>
+                    <tr th:if="${estado}">
+                        <td style="font-size: 0.9rem; color: #64748b;">Estado del Pedido:</td>
+                        <td style="font-size: 0.95rem; font-weight: bold; color: #0d6efd;" th:text="${estado}">Registrado</td>
+                    </tr>
+                </table>
+
+                <p style="margin-top: 30px; border-top: 1px solid #f1f5f9; padding-top: 20px; color: #64748b; font-size: 0.9rem;">
+                    Cordialmente,<br/>
+                    <strong style="color: #4a1525; font-size: 1rem;">Equipo de Yuju Repostería</strong><br/>
+                    <span style="font-size: 0.85rem; color: #94a3b8;">Endulzando tus momentos más memorables.</span>
+                </p>
+            </td>
+        </tr>
+
+        <!-- Pie de página -->
+        <tr>
+            <td style="padding: 18px 36px; font-size: 12px; color: #94a3b8; background: #faf8f5; text-align: center; border-top: 1px solid #eee8e2;">
+                Este correo fue generado automáticamente por el Sistema de Gestión de Repostería.<br>
+                Yuju Repostería S.A.S. | Bogotá - Colombia | yuju.sas.empresa@gmail.com
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

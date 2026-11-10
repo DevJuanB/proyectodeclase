@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Informes y Estadísticas')}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('informes')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Informes Gerenciales & Estadísticas')}"></div>
+    <div th:replace="~{fragments/base :: alerts}"></div>
+
+    <!-- Barra de Filtros -->
+    <div class="card-custom p-4 mb-4">
+        <form th:action="@{/informes}" method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Fecha Inicial</label>
+                <input type="date" name="fechaInicio" th:value="${fechaInicio}" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Fecha Final</label>
+                <input type="date" name="fechaFin" th:value="${fechaFin}" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-muted">Tipo de Cliente / Venta</label>
+                <select name="tipoVenta" class="form-select">
+                    <option value="">-- Todos los Clientes --</option>
+                    <option th:each="tv : ${tiposVenta}" th:value="${tv}" th:text="${tv.descripcion}" th:selected="${tipoVenta == tv}"></option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-gourmet w-100">
+                    <i class="bi bi-funnel-fill me-1"></i> Filtrar
+                </button>
+                <a th:href="@{/informes}" class="btn btn-outline-secondary" title="Limpiar"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Acciones de Exportación: DESCARGAR PDF Y ENVIAR POR CORREO -->
+    <div class="card-custom p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: var(--bg-cream); border: 2px dashed #d4af37;">
+        <div>
+            <h6 class="fw-bold mb-1" style="color: var(--primary);">Exportar Informe de Ventas</h6>
+            <small class="text-muted">Descarga este reporte filtrado en documento PDF oficial o envíalo por correo electrónico.</small>
+        </div>
+        <div class="d-flex gap-2">
+            <!-- Botón DESCARGAR PDF -->
+            <a th:href="@{/informes/pdf(fechaInicio=${fechaInicio}, fechaFin=${fechaFin}, tipoVenta=${tipoVenta})}" class="btn btn-pdf">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Descargar Reporte en PDF
+            </a>
+
+            <!-- Botón ENVIAR POR CORREO -->
+            <button type="button" class="btn btn-email" data-bs-toggle="modal" data-bs-target="#modalEnviarReporte">
+                <i class="bi bi-envelope-at-fill me-1"></i> Enviar Reporte por Correo
+            </button>
+        </div>
+    </div>
+
+    <!-- Indicadores Comparativos Mayorista vs Minorista -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card-custom stat-card">
+                <i class="bi bi-cash-stack stat-icon"></i>
+                <p class="stat-label">Ingresos Globales</p>
+                <h3 class="stat-value" th:text="'$' + ${#numbers.formatDecimal(ingresosTotales, 0, 'POINT', 0, 'COMMA')}">$0</h3>
+                <small class="text-muted">Monto total facturado</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-custom stat-card">
+                <i class="bi bi-person stat-icon"></i>
+                <p class="stat-label">Ventas Minoristas (Al Detal)</p>
+                <h3 class="stat-value text-success" th:text="'$' + ${#numbers.formatDecimal(ventasMinoristas, 0, 'POINT', 0, 'COMMA')}">$0</h3>
+                <small class="text-muted">Clientes individuales en mostrador</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-custom stat-card">
+                <i class="bi bi-building stat-icon"></i>
+                <p class="stat-label">Ventas Mayoristas (Eventos)</p>
+                <h3 class="stat-value" style="color: var(--secondary);" th:text="'$' + ${#numbers.formatDecimal(ventasMayoristas, 0, 'POINT', 0, 'COMMA')}">$0</h3>
+                <small class="text-muted">Empresas, banquetes y hoteles</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Detallada de Pedidos Filtrados -->
+    <div class="card-custom p-4">
+        <h5 class="brand-font mb-3" style="color: var(--primary);">Detalle de Facturación del Período</h5>
+        <div class="table-responsive">
+            <table class="table table-custom table-hover">
+                <thead>
+                    <tr>
+                        <th>N° Factura</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Tipo Venta</th>
+                        <th>Vendedor</th>
+                        <th>Método Pago</th>
+                        <th>Estado</th>
+                        <th class="text-end">Total Facturado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${pedidos}">
+                        <td class="fw-bold text-primary" th:text="${p.numeroFactura}">FAC</td>
+                        <td class="small" th:text="${#temporals.format(p.fechaPedido, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                        <td class="fw-semibold" th:text="${p.cliente.nombreCompleto}">Cliente</td>
+                        <td>
+                            <span class="badge" th:classappend="${p.tipoVenta.name() == 'MAYORISTA' ? 'bg-primary' : 'bg-light text-dark border'}" th:text="${p.tipoVenta.descripcion}"></span>
+                        </td>
+                        <td class="small text-muted" th:text="${p.vendedor != null ? p.vendedor.nombreCompleto : 'Mostrador'}">Vendedor</td>
+                        <td class="small" th:text="${p.metodoPago.descripcion}">Pago</td>
+                        <td>
+                            <span class="badge badge-status"
+                                  th:classappend="${p.estado.name() == 'ENTREGADO' ? 'bg-success' : (p.estado.name() == 'PENDIENTE' ? 'bg-warning text-dark' : 'bg-info text-dark')}"
+                                  th:text="${p.estado.descripcion}">Estado</span>
+                        </td>
+                        <td class="text-end fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(p.total, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pedidos)}">
+                        <td colspan="8" class="text-center text-muted py-5">No se encontraron ventas para los filtros aplicados.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Enviar Reporte por Correo -->
+<div class="modal fade" id="modalEnviarReporte" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/informes/enviar-correo}" method="post">
+                <input type="hidden" name="fechaInicio" th:value="${fechaInicio}" />
+                <input type="hidden" name="fechaFin" th:value="${fechaFin}" />
+                <input type="hidden" name="tipoVenta" th:value="${tipoVenta}" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" style="color: var(--primary);">Enviar Informe PDF por Correo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">Se generará un documento PDF con las ventas del período seleccionado y se adjuntará al correo del destinatario.</p>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Correo Electrónico Destino *</label>
+                        <input type="email" name="correoDestino" class="form-control" placeholder="gerencia@yujureposteria.com" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-email btn-sm">Enviar Documento PDF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+

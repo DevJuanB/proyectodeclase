@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title} + ' | Yuju Repostería'">Yuju Repostería</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --primary: #4a1525;         /* Borgoña / Chocolate elegante */
+            --primary-dark: #2d0b15;
+            --primary-light: #6a2439;
+            --secondary: #d4af37;       /* Dorado repostero */
+            --secondary-hover: #b89326;
+            --accent-pink: #f8e8e8;
+            --bg-cream: #fdfbf9;
+            --surface-card: #ffffff;
+            --text-main: #2b2b2b;
+            --text-muted: #6c757d;
+            --sidebar-width: 270px;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-cream);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .brand-font {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #ffffff;
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-brand {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            text-align: center;
+        }
+
+        .brand-logo {
+            font-size: 2.2rem;
+            display: inline-block;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .brand-name {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .brand-tagline {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            padding: 16px 12px;
+            list-style: none;
+            margin: 0;
+        }
+
+        .menu-header {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: rgba(255, 255, 255, 0.45);
+            padding: 12px 14px 6px;
+            font-weight: 700;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu a i {
+            font-size: 1.15rem;
+            margin-right: 12px;
+            color: var(--secondary);
+            width: 22px;
+            text-align: center;
+        }
+
+        .sidebar-menu a:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            transform: translateX(4px);
+        }
+
+        .sidebar-menu a.active {
+            background: var(--secondary);
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .sidebar-menu a.active i {
+            color: var(--primary-dark);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px 35px 50px;
+            min-height: 100vh;
+        }
+
+        /* Navbar Superior */
+        .top-navbar {
+            background: #ffffff;
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-chip {
+            background: var(--accent-pink);
+            padding: 6px 16px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Tarjetas */
+        .card-custom {
+            background: var(--surface-card);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-custom:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .stat-card {
+            padding: 22px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-icon {
+            position: absolute;
+            right: 18px;
+            top: 18px;
+            font-size: 2.8rem;
+            opacity: 0.15;
+            color: var(--primary);
+        }
+
+        .stat-value {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 6px 0 0;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .stat-label {
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        /* Botones Especiales */
+        .btn-gourmet {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            font-weight: 600;
+            padding: 9px 20px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-gourmet:hover {
+            background: var(--primary-light);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .btn-gold {
+            background: var(--secondary);
+            color: var(--primary-dark);
+            border: none;
+            font-weight: 700;
+            padding: 9px 20px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-gold:hover {
+            background: var(--secondary-hover);
+            color: #ffffff;
+        }
+
+        .btn-pdf {
+            background: #dc3545;
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+
+        .btn-pdf:hover {
+            background: #b02a37;
+            color: white;
+        }
+
+        .btn-email {
+            background: #0d6efd;
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+
+        .btn-email:hover {
+            background: #0b5ed7;
+            color: white;
+        }
+
+        /* Tablas */
+        .table-custom {
+            margin: 0;
+        }
+
+        .table-custom th {
+            background: #f8f9fa;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #eef0f3;
+            padding: 12px 14px;
+        }
+
+        .table-custom td {
+            padding: 12px 14px;
+            vertical-align: middle;
+            font-size: 0.92rem;
+        }
+
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.78rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar Compartido -->
+<div th:fragment="sidebar(activeMenu)" class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-logo">🍰</div>
+        <h2 class="brand-name">Yuju</h2>
+        <p class="brand-tagline">Repostería</p>
+    </div>
+
+    <ul class="sidebar-menu">
+        <li class="menu-header">Módulos Principales</li>
+        <li>
+            <a th:href="@{/}" th:classappend="${activeMenu == 'dashboard' ? 'active' : ''}">
+                <i class="bi bi-speedometer2"></i> Panel de Control
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/pedidos}" th:classappend="${activeMenu == 'pedidos' ? 'active' : ''}">
+                <i class="bi bi-receipt"></i> Ventas & Pedidos
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/productos}" th:classappend="${activeMenu == 'productos' ? 'active' : ''}">
+                <i class="bi bi-cake2"></i> Productos Repostería
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/produccion}" th:classappend="${activeMenu == 'produccion' ? 'active' : ''}">
+                <i class="bi bi-fire"></i> Producción & Lotes
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/inventario}" th:classappend="${activeMenu == 'inventario' ? 'active' : ''}">
+                <i class="bi bi-box-seam"></i> Insumos & Inventario
+            </a>
+        </li>
+
+        <li class="menu-header">Comercial & Personal</li>
+        <li>
+            <a th:href="@{/clientes}" th:classappend="${activeMenu == 'clientes' ? 'active' : ''}">
+                <i class="bi bi-people"></i> Gestión de Clientes
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/empleados}" th:classappend="${activeMenu == 'empleados' ? 'active' : ''}">
+                <i class="bi bi-person-badge"></i> Empleados & Turnos
+            </a>
+        </li>
+
+        <li class="menu-header">Reportes & Utilidades</li>
+        <li>
+            <a th:href="@{/informes}" th:classappend="${activeMenu == 'informes' ? 'active' : ''}">
+                <i class="bi bi-bar-chart-line"></i> Informes & Métricas
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/correo}" th:classappend="${activeMenu == 'correo' ? 'active' : ''}">
+                <i class="bi bi-envelope-at"></i> Enviar Correo Manual
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/h2-console}" target="_blank">
+                <i class="bi bi-database"></i> Consola BD (H2)
+            </a>
+        </li>
+
+        <li class="menu-header">Sesión</li>
+        <li>
+            <a th:href="@{/logout}">
+                <i class="bi bi-box-arrow-right text-danger"></i> Cerrar Sesión
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Topbar Compartido -->
+<div th:fragment="topbar(pageTitle)" class="top-navbar">
+    <div>
+        <h3 class="mb-0 brand-font text-primary" style="color: var(--primary) !important;" th:text="${pageTitle}">Página</h3>
+        <small class="text-muted">Sistema Informático para la Gestión de Producción y Ventas</small>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <a th:href="@{/productos/catalogo-pdf}" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-file-earmark-pdf"></i> Catálogo PDF
+        </a>
+        <a th:href="@{/pedidos/nuevo}" class="btn btn-gourmet btn-sm">
+            <i class="bi bi-plus-circle"></i> Nuevo Pedido
+        </a>
+        <div class="user-chip">
+            <i class="bi bi-person-circle"></i>
+            <span th:text="${session.nombreUsuario != null ? session.nombreUsuario : 'Administrador'}">Usuario</span>
+            <span class="badge bg-dark" th:text="${session.rolUsuario != null ? session.rolUsuario : 'ADMIN'}">ROL</span>
+        </div>
+    </div>
+</div>
+
+<!-- Mensajes Flash de Éxito o Error -->
+<div th:fragment="alerts">
+    <div th:if="${mensaje}" class="alert alert-success alert-dismissible fade show card-custom border-0 shadow-sm mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+        <span th:text="${mensaje}">Operación exitosa.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show card-custom border-0 shadow-sm mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <span th:text="${error}">Ha ocurrido un error.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<!-- Scripts Bootstrap -->
+<div th:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+
+</body>
+</html>
+

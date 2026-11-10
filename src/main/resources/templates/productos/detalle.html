@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: head('Ficha Técnica - ' + ${producto.nombre})}"></head>
+<body>
+
+<div th:replace="~{fragments/base :: sidebar('productos')}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/base :: topbar('Ficha Técnica del Producto')}"></div>
+
+    <div class="card-custom p-4" style="max-width: 950px; margin: 0 auto;">
+        <div class="row g-4">
+            <div class="col-md-5 text-center">
+                <img th:src="${producto.imagenUrl != null ? producto.imagenUrl : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80'}"
+                     alt="Producto" class="img-fluid rounded-4 shadow-sm mb-3" style="max-height: 350px; object-fit: cover; width: 100%;" />
+                <div class="d-flex justify-content-center gap-2">
+                    <span class="badge bg-primary px-3 py-2" th:text="${producto.tipo.descripcion}"></span>
+                    <span class="badge px-3 py-2" th:classappend="${producto.disponible ? 'bg-success' : 'bg-secondary'}" th:text="${producto.disponible ? 'Disponible' : 'Agotado'}"></span>
+                    <span class="badge px-3 py-2" th:classappend="${producto.stock <= producto.stockMinimo ? 'bg-danger' : 'bg-dark'}" th:text="'Stock: ' + ${producto.stock} + ' un.'"></span>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase" th:text="'CÓDIGO: ' + ${producto.codigo}"></span>
+                        <h2 class="brand-font mb-2" style="color: var(--primary);" th:text="${producto.nombre}">Nombre</h2>
+                    </div>
+                    <a th:href="@{'/productos/editar/' + ${producto.id}}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                </div>
+
+                <p class="text-muted" th:text="${producto.descripcion}">Descripción del producto...</p>
+
+                <!-- Precios -->
+                <div class="row g-2 p-3 rounded-3 mb-3" style="background: var(--bg-cream); border: 1px dashed #e2dcd7;">
+                    <div class="col-6">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.72rem;">Precio Minorista (Detal)</small>
+                        <h4 class="text-success fw-bold mb-0" th:text="'$' + ${#numbers.formatDecimal(producto.precioMinorista, 0, 'POINT', 0, 'COMMA')}">$0</h4>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.72rem;">Precio Mayorista (Eventos)</small>
+                        <h4 class="fw-bold mb-0" style="color: var(--secondary);" th:text="'$' + ${#numbers.formatDecimal(producto.precioMayorista, 0, 'POINT', 0, 'COMMA')}">$0</h4>
+                    </div>
+                </div>
+
+                <!-- Detalles adicionales -->
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <small class="text-muted fw-bold d-block">Presentación:</small>
+                        <span th:text="${producto.presentacion != null ? producto.presentacion : 'N/A'}"></span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted fw-bold d-block">Tamaño / Peso:</small>
+                        <span th:text="${producto.tamano != null ? producto.tamano : 'N/A'}"></span>
+                    </div>
+                </div>
+
+                <!-- Ingredientes y Alérgenos -->
+                <div class="mb-3">
+                    <h6 class="fw-bold text-primary mb-1"><i class="bi bi-basket me-1"></i> Ingredientes:</h6>
+                    <p class="small text-muted mb-0" th:text="${producto.ingredientes != null ? producto.ingredientes : 'Receta confidencial artesanal.'}"></p>
+                </div>
+
+                <div class="mb-3 p-2 rounded border-start border-3 border-warning bg-light">
+                    <h6 class="fw-bold text-warning mb-1" style="color: #b89326 !important;"><i class="bi bi-shield-exclamation me-1"></i> Posibles Alérgenos:</h6>
+                    <p class="small mb-0 text-dark" th:text="${producto.alergenos != null ? producto.alergenos : 'No declarados.'}"></p>
+                </div>
+
+                <div class="mb-4 p-2 rounded border-start border-3 border-info bg-light">
+                    <h6 class="fw-bold text-info mb-1"><i class="bi bi-thermometer-half me-1"></i> Condiciones de Almacenamiento:</h6>
+                    <p class="small mb-0 text-dark" th:text="${producto.condicionesAlmacenamiento != null ? producto.condicionesAlmacenamiento : 'Almacenar en lugar fresco.'}"></p>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a th:href="@{/productos}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> Volver a la lista
+                    </a>
+                    <a th:href="@{/productos/catalogo-pdf}" class="btn btn-pdf btn-sm">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Catálogo Completo en PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/base :: scripts}"></div>
+</body>
+</html>
+
